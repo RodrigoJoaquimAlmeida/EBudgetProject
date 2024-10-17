@@ -1,0 +1,56 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>checkout</h3>
+<a href="{% url 'carrinho' %}">Voltar para Carrinho</a>
+
+<h4>Número orçamento: {{ orcamento.id }}</h4>
+<h4>Total produtos: {{ orcamento.quantidade_total }}</h4>
+
+{% if erro %}
+
+    {% if erro == 'quantidade' %}
+
+    <p>Divergência na Quantidade Total a ser enviado. Retornando ao Checkout...</p>
+
+    {% endif %}
+
+    {% if erro == 'endereco' %}
+
+    <p>Erro ao enviar Endereço. Confirme se Endereço foi cadastrado. Retornando ao Checkout...</p>
+
+    {% endif %}
+
+{% endif %}
+
+<form action="{% url 'finalizar_orcamento' orcamento.id %}" method="post">
+    {% csrf_token %}
+    <h3>Confirme qual endereço gostaria de usar no Orçamento</h3>
+    <a href="{% url 'adicionar_endereco' %}">Adicionar Endereço ao Orçamento</a>
+    <br>
+
+    {% for endereco in enderecos %}
+        
+        <input type="radio" name="endereco" value = "{{ endereco.id }}">
+        <label for="{{ endereco.id }}">{{ endereco.cidade }}-{{ endereco.estado }}-{{ endereco.rua }}-{{ endereco.numero }}-{{ endereco.complemento }}-{{ endereco.cep }} </label>
+        <br>
+    {% endfor %}
+    
+    <!-- {% if not request.user.is_authenticated %}
+    <hr>
+    <h4>Preencha seu e-mail para receber cópia do Orçamento</h4>
+    <input type="email" name="email" placeholder="email">
+
+    {% endif %} -->
+    <hr>
+    <input type="hidden" name="total" value="{{ orcamento.quantidade_total }}">
+    <button type="submit">Finalizar Orçamento - {{ orcamento.quantidade_total }} Produtos</button>
+
+</form>
+
+
+
+
+{% endblock %}

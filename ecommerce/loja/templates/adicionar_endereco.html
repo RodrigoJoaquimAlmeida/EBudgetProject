@@ -1,0 +1,25 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>Adicionar Endereço</h3>
+<a href="{% url 'checkout' %}">Retornar para o Orçamento</a>
+
+<h3>Adicione um novo Endereço</h3>
+<form action="{% url 'adicionar_endereco' %}" method="post">
+    {% csrf_token %}
+
+        <input type="text" name="cidade" placeholder="Cidade" required>
+        <input type="text" name="estado" placeholder="Estado" maxlength="2" required>
+        <input type="text" name="rua" placeholder="Rua/Avenida" required>
+        <input type="number" name="numero" placeholder="Número" required>
+        <input type="text" name="complemento" placeholder="Complemento" required>
+        <input type="text" name="cep" placeholder="CEP *SOMENTE NÚMEROS" minlength="8" maxlength="8" pattern="[0-9]*" required>
+        <label for="{{ endereco.id }}">{{ endereco.cidade }}{{ endereco.estado }}{{ endereco.rua }}{{ endereco.numero }}{{ endereco.complemento }}{{ endereco.cep }} </label>
+
+    <button type="submit">Adicionar Endereço</button>
+
+</form>
+
+{% endblock %}

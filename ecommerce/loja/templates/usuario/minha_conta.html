@@ -1,0 +1,65 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>Minha Conta</h3>
+
+<a href="{% url 'meus_orcamentos' %}">Meus Orçamentos</a>
+
+<a href="{% url 'fazer_logout' %}">Sair da Conta</a>
+
+{% if alterado %}
+
+<p>Alterações salvas com sucesso</p>
+
+{% endif %}
+
+{% if erro == "senha_incorreta" %}
+
+<p>Senha atual incorreta. Tente novamente.</p>
+
+{% endif %}
+
+{% if erro == "senhas_divergentes" %}
+
+<p>Nova Senha diferente da Confirmação Nova Senha. Tente novamente.</p>
+
+{% endif %}
+
+{% if erro == "email_existente" %}
+
+<p>Já existe um e-mail cadastrado. Tente novamente.</p>
+
+{% endif %}
+
+{% if erro == "formulario_invalido" %}
+
+<p>Formulário inválido. Tente novamente.</p>
+
+{% endif %}
+
+<h2>Editar dados da Conta:</h2>
+
+<h3>Meus Dados</h3>
+<form action="{% url 'minha_conta' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="nome" placeholder="Nome Completo" minlength="5" maxlength="50" value="{{ request.user.cliente.nome }}" required >
+    <input type="text" name="razaosocial" placeholder="Razão Social (se CPF, repetir Nome Completo)" minlength="5" maxlength="50" value="{{ request.user.cliente.razaosocial }}" required>
+    <input type="text" name="cnpjcpf" placeholder="CNPJ/CPF *SOMENTE NÚMEROS*" maxlength="14" minlength="11" pattern="[0-9]*" value="{{ request.user.cliente.cnpj }}" required>
+    <input type="email" name="email" placeholder="Email" required value="{{ request.user.email }}" >
+    <input type="tel" name="telefone" placeholder="WhatsApp ou Fixo com DDD (ex. 62)" maxlength="11" minlength="10" title="Formato 62999999999 ou 6233333333" pattern="[0-9]*" value="{{ request.user.cliente.telefone }}" required>
+    <button type="submit">Salvar</button>
+</form>
+<hr>
+
+<h3>Alterar Senha</h3>
+<form action="{% url 'minha_conta' %}" method="post">
+    {% csrf_token %}
+    <input type="password" name="senha_atual" placeholder="Senha Atual">
+    <input type="password" name="nova_senha" placeholder="Nova Senha">
+    <input type="password" name="nova_senha_confirmacao" placeholder="Repita Nova Senha">
+    <button type="submit">Editar Senha</button>
+</form>
+
+{% endblock %}

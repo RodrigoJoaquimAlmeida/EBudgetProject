@@ -1,0 +1,31 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>Meus Orcamentos</h3>
+
+<a href="{% url 'minha_conta' %}">Minha Conta</a>
+
+<a href="{% url 'fazer_logout' %}">Sair da Conta</a>
+
+{% for orcamento in orcamentos %}
+
+<div style="display: flex;">
+    <p>Data: {{ orcamento.data_finalizacao }}</p>
+    <p>ID Pedido: {{ orcamento.id }}</p>
+    <p>Codigo Orçamento: {{ orcamento.codigo_orcamento }}</p>
+    <p>Endereço: {{ orcamento.endereco.cep }}, {{ orcamento.endereco.cidade }}, {{ orcamento.endereco.estado }}</p>
+
+    {% for item in orcamento.itens %}
+    <img src="{{ item.item_estoque.produto.imagem.url }}" width="50" height="50" alt="">
+    <p>Código: {{ item.item_estoque.produto.SKU }}</p>
+    <p>Descrição: {{ item.item_estoque.produto.nome }}</p>
+    <p>Quantidade: {{ item.quantidade }}</p>
+    <hr>
+    {% endfor %}
+</div>
+
+{% endfor %}
+
+{% endblock %}

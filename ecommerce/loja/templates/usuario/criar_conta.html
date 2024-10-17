@@ -1,0 +1,46 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>login</h3>
+
+<h3>Preencha seus dados para criar uma conta</h3>
+
+{% if erro == 'preenchimento' %}
+
+<p>Preencha corretamente todas as informações do formulário para criar conta.</p>
+
+{% endif %}
+{% if erro == 'email_invalido' %}
+
+<p>E-mail inválido, tente novamente.</p>
+
+{% endif %}
+{% if erro == 'usuario_existente' %}
+
+<p>Usuário existe para este e-mail. Gostaria de <a href="{% url 'fazer_login' %}">Acessar sua conta?</a></p>
+
+{% endif %}
+{% if erro == 'senhas_diferentes' %}
+
+<p>Senhas divergentes, tente novamente.</p>
+{% endif %}
+
+
+<form action="{% url 'criar_conta' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="nome" placeholder="Nome Completo" minlength="5" maxlength="50" required>
+    <input type="text" name="razaosocial" placeholder="Razão Social (se CPF, repetir Nome Completo)" minlength="5" maxlength="50" required>
+    <input type="text" name="cnpjcpf" placeholder="CNPJ/CPF *SOMENTE NÚMEROS*" maxlength="14" minlength="11" pattern="[0-9]*" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="senha" placeholder="Senha (mínimo 5 máximo 30 caracteres)" minlength="5" maxlength="30" required>
+    <input type="password" name="confirmacao_senha" placeholder="Repetir Senha" minlength="5" maxlength="30" required>
+    <input type="tel" name="telefone" placeholder="WhatsApp ou Fixo com DDD (ex. 62)" maxlength="11" minlength="10" title="Formato 62999999999 ou 6233333333" pattern="[0-9]*" required>
+    <button type="submit">Criar Conta</button>
+</form>
+
+<a href="{% url 'fazer_login' %}">Já tem uma conta? Fazer login</a>
+
+
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block body %}
+
+<h3>{{ produto.nome }}</h3>
+
+<img src="{{ produto.imagem.url }}" width="300" height="450">
+<p>Produto: {{ produto.nome }} </p>
+<p>Código: {{ produto.SKU }}</p>
+
+{% if cor_selecionada %}
+
+<form action="{% url 'adicionar_carrinho' produto.id %}" method="post">   
+    {% csrf_token %}
+    <input type="radio" name="cor_selecionada" value = "{{ cor_selecionada.nome }}">
+    <label for="{{ cor_selecionada.nome }}"> Cor: {{ cor_selecionada.nome }}</label>
+    <input type="hidden" name="cor_selecionada" value="{{ cor_selecionada.id }}">
+    <p><button type="submit">Adicionar ao Orçamento</button></p>
+</form>
+
+   
+{% endif %}
+
+{% for cor in cores %}
+<p>Selecione a Cor: </p>
+<a href="{% url 'ver_produto' produto.id cor.id %}">
+    <i class="fa-solid fa-circle" style="color: {{ cor.codigo }}"></i>
+</a>
+
+{% endfor %}
+
+
+
+
+{% endblock %}
