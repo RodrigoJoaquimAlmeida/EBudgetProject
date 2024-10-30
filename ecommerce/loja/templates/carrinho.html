@@ -3,60 +3,114 @@
 
 {% block body %}
 
-<h3>carrinho</h3>
+<main class="principal principal-car">
+    <section class="carrinho">
+        {% if cliente_existente %}
+        {% if orcamento.quantidade_total > 0 %}
+        <div class="orca">
+            <h1 class="orca__titulo">PRODUTOS DO SEU CARRINHO</h1>
+            <p class="orca__paragraf">
+                Você receberá uma cópia deste orçamento, em formato
+                <b>".PDF"</b>, na sua caixa de email, encaminhado também
+                para a nossa equipe comercial. Após a conclusão, você
+                terá a opção de abrir uma conversa com o WhatsApp do
+                tim<span>aço metalforte</span>
+                <b>para finalizar este orçamento</b>.
+            </p>
+            <table class="tabela">
+                <tr>
+                    <th>Produtos</th>
+                    <th>Quantidade</th>
+                    <th>Adiciona Fardo/Volume?</th>
+                </tr>
+                {% for item in itens_orcamento %}
+                <tr>
+                    <td class="tabela__produto">
+                        {% if item.item_estoque.produto.imagem.all %}
+                        <img
+                            class="tabela__img"
+                            src="{{ item.item_estoque.produto.imagem.all.0.imagem.url }}"
+                            alt="Imagem {{ item.item_estoque.produto.nome }}"
+                        />
+                        {% endif %}
+                        <div class="tabela__produto-textos">
+                            <p>Código: <span>{{ item.item_estoque.produto.SKU }}</span></p>
+                            <p>{{ item.item_estoque.produto.nome }}</p>
+                            <p>Cor: <span>{{ item.item_estoque.cor.nome }}</span></p>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tabela__quantidade">
+                            <form action="{% url 'remover_carrinho' item.item_estoque.produto.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
+                                <input type="hidden" name="quantidade" value="1">
+                                <button type="submit">-</button>            
+                            </form>
+                            {{ item.quantidade }}
+                            <form action="{% url 'adicionar_carrinho' item.item_estoque.produto.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
+                                <input type="hidden" name="quantidade" value="1">
+                                <button type="submit">+</button>            
+                            </form>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tabela__quantidade-fardo">
+                            <form action="{% url 'adicionar_carrinho' item.item_estoque.produto.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
+                                <input type="hidden" name="quantidade" value="{{ item.item_estoque.produto.fardo }}">
+                                <button type="submit">Adicionar ({{ item.item_estoque.produto.fardo }} {{ item.item_estoque.produto.medida }})</button>
+                            </form>
+                            <form action="{% url 'remover_carrinho' item.item_estoque.produto.id %}" method="post">
+                                {% csrf_token %}
+                                
+                                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
+                                <input type="hidden" name="quantidade" value="{{ item.item_estoque.produto.fardo }}">
+                                <button type="submit">Remover ({{ item.item_estoque.produto.fardo }} {{ item.item_estoque.produto.medida }})</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="totalprod">
+            <div class="totalprod__total">
+                <div class="totalprod__total-norc">
+                    <p>Nº Orçamento</p>
+                    <p>{{ orcamento.id }}</p>
+                </div>
+                <div class="totalprod__total-torc">
+                    <p>Quantidade Total</p>
+                    <p>{{ orcamento.quantidade_total }}</p>
+                </div>
 
-{% if cliente_existente %}
+                <a href="{% url 'checkout' %}" class="totalprod__adicionar">
+                    Fazer Checkout
+                </a>
+            </div>
+        </div>
+        {% else %}
+    
+        <div style="align-items: center; justify-content: center;">
+            <h2>Seu carrinho está vazio</h2>
+            <p class="conta__titulos"><a style="color: #f97114;" href="{% url 'loja' %}">Visite nossa loja</a></p>
+        </div>
+    
+        {% endif %}
 
-<h4>Número orçamento: {{ orcamento.id }}</h4>
-<h4>Total produtos: {{ orcamento.quantidade_total }}</h4>
-
-{% for item in itens_orcamento %}
-
-    <p>
-        <img src="{{ item.item_estoque.produto.imagem.url }}" alt="Imagem produto - {{ item.item_estoque.produto.nome }}" width="50" height="50">
-        Código: {{ item.item_estoque.produto.SKU }} ; 
-        Descrição: {{ item.item_estoque.produto.nome }} ; 
-        Cor: {{ item.item_estoque.cor.nome }} ; 
-        <div style="display: flex;">
-            Quantidade: 
-            <form action="{% url 'remover_carrinho' item.item_estoque.produto.id %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
-                <input type="hidden" name="quantidade" value="1">
-                <button type="submit">-</button>            
-            </form>
-            {{ item.quantidade }}
-            <form action="{% url 'adicionar_carrinho' item.item_estoque.produto.id %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
-                <input type="hidden" name="quantidade" value="1">
-                <button type="submit">+</button>            
-            </form>
-            <form action="{% url 'adicionar_carrinho' item.item_estoque.produto.id %}" method="post">
-                {% csrf_token %}
-                Adiciona Fardo/Volume? ({{ item.item_estoque.produto.fardo }} {{ item.item_estoque.produto.medida }})
-                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
-                <input type="hidden" name="quantidade" value="{{ item.item_estoque.produto.fardo }}">
-                <button type="submit">Adicionar ({{ item.item_estoque.produto.fardo }} {{ item.item_estoque.produto.medida }})</button>
-            </form>
-            <form action="{% url 'remover_carrinho' item.item_estoque.produto.id %}" method="post">
-                {% csrf_token %}
-                
-                <input type="hidden" name="cor_selecionada" value="{{ item.item_estoque.cor.id }}">
-                <input type="hidden" name="quantidade" value="{{ item.item_estoque.produto.fardo }}">
-                <button type="submit">Remover ({{ item.item_estoque.produto.fardo }} {{ item.item_estoque.produto.medida }})</button>
-            </form>
-        </div>   
-    </p>
-    <hr>
-    {% endfor %}
-    <a href="{% url 'checkout' %}">Checkout</a>
-
-{% else %}
-
-    <h3>Seu carrinho está vazio</h3>
-    <a href="{% url 'loja' %}">Visite nossa loja</a>
-
-{% endif %}
+        {% else %}
+    
+        <div style="align-items: center; justify-content: center;">
+            <h2>Seu carrinho está vazio</h2>
+            <p class="conta__titulos"><a style="color: #f97114;" href="{% url 'loja' %}">Visite nossa loja</a></p>
+        </div>
+    
+        {% endif %}
+    </section>
+</main>
 
 {% endblock %}

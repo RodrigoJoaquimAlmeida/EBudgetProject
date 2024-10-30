@@ -57,7 +57,8 @@ def ver_produto(request, id_produto, id_cor=None): #RETORNAR AQUI PARA AJUSTAR Q
         cores = {item.cor for item in itens_estoque}
         if id_cor:
             itens_estoque = ItemEstoque.objects.filter(produto=produto, quantidade__gte=0, cor__id = id_cor) 
-    context = {'produto': produto, 'itens_estoque': itens_estoque, 'tem_estoque': tem_estoque, 'cores': cores, 'cor_selecionada': cor_selecionada}
+    similares = Produto.objects.filter(categoria__id=produto.categoria.id, grupo__id=produto.grupo.id).exclude(id=produto.id)
+    context = {'produto': produto, 'itens_estoque': itens_estoque, 'tem_estoque': tem_estoque, 'cores': cores, 'cor_selecionada': cor_selecionada, 'similares': similares[:4]}
     return render(request, 'ver_produto.html', context)
 
 def adicionar_carrinho(request, id_produto):

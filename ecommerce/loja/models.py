@@ -38,8 +38,14 @@ class Medida(models.Model):
     def __str__(self):
         return str(self.nome)
 
-class Produto(models.Model):
+class Foto(models.Model):
     imagem = models.ImageField(upload_to=produto_imagem_path, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.imagem)
+
+class Produto(models.Model):
+    imagem = models.ManyToManyField(Foto, blank=True, related_name='produtos')
     nome = models.CharField(max_length=200, null=True, blank=True)
     SKU = models.CharField(max_length=10, null=True, blank=True)
     fardo = models.IntegerField(default=0)
@@ -47,6 +53,7 @@ class Produto(models.Model):
     categoria = models.ForeignKey(Categoria, null=True, blank=True, on_delete=models.SET_NULL)
     grupo = models.ForeignKey(Grupo, null=True, blank=True, on_delete=models.SET_NULL)
     medida = models.ForeignKey(Medida, null=True, blank=True, on_delete=models.SET_NULL)
+    texto = models.TextField(max_length=999, null=True, blank=True)
 
     def __str__(self):
         return f'SKU: {str(self.SKU)}, Descrição: {str(self.nome)}, Categoria: {str(self.categoria)}, Grupo: {str(self.grupo)}, Fardo/Volume: {str(self.fardo)}, Medida: {str(self.medida)}'
@@ -126,3 +133,6 @@ class Banner(models.Model):
 class OrcamentosSalvos(models.Model):
     formulario = models.FileField(upload_to=produto_formulario_path)
     orcamento = models.ForeignKey(Orcamento, null=True, blank=True, on_delete=models.CASCADE)
+
+
+

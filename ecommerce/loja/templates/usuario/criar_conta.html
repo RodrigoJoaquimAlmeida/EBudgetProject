@@ -3,44 +3,85 @@
 
 {% block body %}
 
-<h3>login</h3>
+<main class="principal principal-car">
+    <section class="conta">
+        <div class="conta__container">
+            <div>
+                <p style="padding-bottom: 1rem;" class="conta__titulos">
+                    <a style="color: #f97114;" href="{% url 'fazer_login' %}">Já tem uma conta? Fazer login</a>
+                </p>
+                
+                <p class="conta__titulos">
+                    Preencha seus dados para criar uma conta
+                </p>
+                {% if erro == 'preenchimento' %}
 
-<h3>Preencha seus dados para criar uma conta</h3>
+                    <p style="color: crimson; padding-top: 1rem;">Preencha corretamente todas as informações do formulário para criar conta.</p>
 
-{% if erro == 'preenchimento' %}
+                {% endif %}
+                {% if erro == 'email_invalido' %}
 
-<p>Preencha corretamente todas as informações do formulário para criar conta.</p>
+                    <p style="color: crimson; padding-top: 1rem;">E-mail inválido, tente novamente.</p>
 
-{% endif %}
-{% if erro == 'email_invalido' %}
+                {% endif %}
+                {% if erro == 'usuario_existente' %}
 
-<p>E-mail inválido, tente novamente.</p>
+                    <p style="color: crimson; padding-top: 1rem;">Usuário existe para este e-mail. Gostaria de <a href="{% url 'fazer_login' %}">Acessar sua conta?</a></p>
 
-{% endif %}
-{% if erro == 'usuario_existente' %}
+                {% endif %}
+                {% if erro == 'senhas_diferentes' %}
 
-<p>Usuário existe para este e-mail. Gostaria de <a href="{% url 'fazer_login' %}">Acessar sua conta?</a></p>
+                    <p style="color: crimson; padding-top: 1rem;">Senhas divergentes, tente novamente.</p>
+                {% endif %}
+            </div>
+            <form
+                class="conta__form"
+                action="{% url 'minha_conta' %}"
+                method="post"
+            >
+                {% csrf_token %}
+                <div class="conta__item">
+                    <label for="">Nome Completo</label>
+                    <input type="text" name="nome" placeholder="Nome Completo" minlength="5" maxlength="50" required>
+                </div>
 
-{% endif %}
-{% if erro == 'senhas_diferentes' %}
+                <div class="conta__item">
+                    <label for="">CPF/CNPJ</label>
+                    <input type="text" name="cnpjcpf" placeholder="CNPJ/CPF *SOMENTE NÚMEROS*" maxlength="14" minlength="11" pattern="[0-9]*" required>
+                </div>
 
-<p>Senhas divergentes, tente novamente.</p>
-{% endif %}
+                <div class="conta__item conta__item--email">
+                    <label for="">Razão Social</label>
+                    <input type="text" name="razaosocial" placeholder="Razão Social (se CPF, repetir Nome Completo)" minlength="5" maxlength="50" required>
+                </div>
 
+                <div class="conta__item">
+                    <label for="">E-mail</label>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
 
-<form action="{% url 'criar_conta' %}" method="post">
-    {% csrf_token %}
-    <input type="text" name="nome" placeholder="Nome Completo" minlength="5" maxlength="50" required>
-    <input type="text" name="razaosocial" placeholder="Razão Social (se CPF, repetir Nome Completo)" minlength="5" maxlength="50" required>
-    <input type="text" name="cnpjcpf" placeholder="CNPJ/CPF *SOMENTE NÚMEROS*" maxlength="14" minlength="11" pattern="[0-9]*" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <input type="password" name="senha" placeholder="Senha (mínimo 5 máximo 30 caracteres)" minlength="5" maxlength="30" required>
-    <input type="password" name="confirmacao_senha" placeholder="Repetir Senha" minlength="5" maxlength="30" required>
-    <input type="tel" name="telefone" placeholder="WhatsApp ou Fixo com DDD (ex. 62)" maxlength="11" minlength="10" title="Formato 62999999999 ou 6233333333" pattern="[0-9]*" required>
-    <button type="submit">Criar Conta</button>
-</form>
+                <div class="conta__item">
+                    <label for="">Telefone</label>
+                    <input type="tel" name="telefone" placeholder="WhatsApp ou Fixo com DDD (ex. 62)" maxlength="11" minlength="10" title="Formato 62999999999 ou 6233333333" pattern="[0-9]*" required>
+                </div>
 
-<a href="{% url 'fazer_login' %}">Já tem uma conta? Fazer login</a>
+                <div class="conta__item">
+                    <label for="">Senha</label>
+                    <input type="password" name="senha" placeholder="Senha (mínimo 5 máximo 30 caracteres)" minlength="5" maxlength="30" required>
+                </div>
 
+                <div class="conta__item">
+                    <label for="">Repetir Senha</label>
+                    <input type="password" name="confirmacao_senha" placeholder="Repetir Senha" minlength="5" maxlength="30" required>
+                </div>
+
+                <button class="conta__botao" type="submit">
+                    Criar Conta
+                </button>
+            </form>                     
+        </div>
+        
+    </section>
+</main>
 
 {% endblock %}

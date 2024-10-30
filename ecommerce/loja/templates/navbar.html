@@ -1,33 +1,167 @@
 {% load static %}
 
-<nav>
-	<a href="{% url 'homepage' %}">Metalforte</a>
-	<a href="{% url 'loja' %}">Loja</a>
-	<div style="display: flex">
-
-		{% for categoria in categorias_nav %}
-		<div>
-			<a href="{% url 'loja' %}{{ categoria.slug }}">{{ categoria.nome }}</a>
-			
-			<br>
-			{% for grupo in grupos_nav %}
-			{% if grupo.categoria.slug == categoria.slug %}
-			<a href="{% url 'loja' %}{{ categoria.slug }}-{{ grupo.slug }}">{{ grupo.nome}}</a>
-			{% endif %}
-			{% endfor %}
-		</div>
-		{% endfor %}
-
+<header class="cabecalho">
+	<div class="cabecalho__menu">
+		<img
+			class="cabecalho__menu-icone"
+			src="{% static 'images/menu-svgrepo-com.svg' %}"
+			alt="Ícone Menu"
+		/>
+		<p class="cabecalho__menu-x">X</p>
 	</div>
-	{% if request.user.is_authenticated %}
-		<a href="{% url 'minha_conta' %}">Minha Conta</a>
-	{% else %}
-		<a href="{% url 'fazer_login' %}">Login</a>
-	{% endif %}
-
-	<a href="{% url 'carrinho' %}">Carrinho</a>
-	<img src="{% static 'images/carrinho.png' %}" alt="Imagem Carrinho" width="30" height="30">
-	{{ quantidade_produtos_carrinho }}
-
-	
-</nav>
+	<div class="cabecalho__container">
+		<a href="{% url 'homepage' %}">
+			<img
+				src="{% static 'images/Logo-Metalforte-Secundaria-RGB.svg' %}"
+				width="150"
+				alt="Logo Metalforte"
+				class="cabecalho__logo"
+			/>
+		</a>
+		<nav class="cabecalho__navegacao">
+			<ul class="cabecalho__lista">
+				<li class="cabecalho__item-lista">
+					<a
+						class="cabecalho__link"
+						href="{% url 'loja' %}"
+						><span>Loja</span></a
+					>
+					<div class="cabecalho__expansao-grupos">
+						<a
+							class="cabecalho__imagem-link"
+							href="{% url 'loja' %}"
+							><img
+								src="{% static 'images/banner-loja.png' %}"
+								alt="Imagem Loja"
+								class="cabecalho__imagem"
+						/></a>
+						<ul
+							class="cabecalho__lista cabecalho__lista--grupo"
+						>
+							<li>
+								<a
+									class="cabecalho__link cabecalho__link--grupo"
+									href="{% url 'loja' %}"
+									>Todos os Produtos</a
+								>
+							</li>
+						</ul>
+					</div>
+				</li>
+				{% for categoria in categorias_nav %}
+					<li class="cabecalho__item-lista">
+						<a
+							class="cabecalho__link"
+							href="{% url 'loja' %}{{ categoria.slug }}"
+							>{{ categoria.nome }}</a
+						>
+						<div class="cabecalho__expansao-grupos">
+							<a
+								class="cabecalho__imagem-link"
+								href="{% url 'loja' %}{{ categoria.slug }}"
+								>
+								{% for banner in banners_nav %}
+								{% if banner.link_destino == categoria.slug %}
+								<img
+									src="{{ banner.imagem.url }}"
+									alt="{{ banner.link_destino }}"
+									class="cabecalho__imagem"
+							/>
+								{% endif %}
+								{% endfor %}
+							</a>
+							<ul
+								class="cabecalho__lista cabecalho__lista--grupo"
+							>
+								{% for grupo in grupos_nav %}
+								{% if grupo.categoria.slug == categoria.slug %}
+									<li>
+										<a
+											class="cabecalho__link cabecalho__link--grupo"
+											href="{% url 'loja' %}{{ categoria.slug }}-{{ grupo.slug }}"
+											>{{ grupo.nome}}</a
+										>
+									</li>
+								{% endif %}
+								{% endfor %}
+								
+							</ul>
+						</div>
+					</li>
+				{% endfor %}
+				
+			</ul>
+		</nav>
+	</div>
+	<div class="cabecalho__icones">
+		<div class="cabecalho__icone-login">
+			<!-- cabecalho__link-icone--logado -->
+			{% if request.user.is_authenticated %}
+				<a class="cabecalho__link-icone cabecalho__link-icone--logado" href="javascript: void(0)">
+			{% else %}
+				<a class="cabecalho__link-icone" href="{% url 'fazer_login' %}">
+			{% endif %}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 448 512"
+					fill="currentColor"
+					class="cabecalho__icone"
+				>
+					<path
+						d="M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464l349.5 0c-8.9-63.3-63.3-112-129-112l-91.4 0c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7L29.7 512C13.3 512 0 498.7 0 482.3z"
+					/>
+				</svg>
+				<svg
+					class="cabecalho__icone cabecalho__icone--logado"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 512 512"
+					fill="currentColor"
+				>
+					<path
+						d="M406.5 399.6C387.4 352.9 341.5 320 288 320l-64 0c-53.5 0-99.4 32.9-118.5 79.6C69.9 362.2 48 311.7 48 256C48 141.1 141.1 48 256 48s208 93.1 208 208c0 55.7-21.9 106.2-57.5 143.6zm-40.1 32.7C334.4 452.4 296.6 464 256 464s-78.4-11.6-110.5-31.7c7.3-36.7 39.7-64.3 78.5-64.3l64 0c38.8 0 71.2 27.6 78.5 64.3zM256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-272a40 40 0 1 1 0-80 40 40 0 1 1 0 80zm-88-40a88 88 0 1 0 176 0 88 88 0 1 0 -176 0z"
+					/>
+				</svg>
+			</a>
+			<!-- cabecalho__informacoes-perfil--aberto -->
+			<div class="cabecalho__informacoes-perfil">
+				<p class="cabecalho__texto">
+					Ola, <span>{{ request.user.cliente.nome }}</span>!
+				</p>
+				<a
+					class="cabecalho__link cabecalho__link--perfil"
+					href="{% url 'minha_conta' %}"
+					>Minha Conta</a
+				>
+				<a
+					class="cabecalho__link cabecalho__link--perfil"
+					href="{% url 'meus_orcamentos' %}"
+					>Meus Orçamentos</a
+				>
+				<hr />
+				<a
+					class="cabecalho__link cabecalho__link--perfil"
+					href="{% url 'fazer_logout' %}"
+					>Sair</a
+				>
+			</div>
+		</div>
+		<div class="cabecalho__icone-carrinho">
+			<a class="cabecalho__link-icone" href="{% url 'carrinho' %}">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 576 512"
+					fill="currentColor"
+					class="cabecalho__icone"
+					
+				>
+					<path
+						d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
+					/>
+				</svg>
+			</a>
+			<div class="cabecalho__itens cabecalho__itens--visivel" style="font-size: 1rem; width: 2.3rem; height: 2.3rem;">
+				{{ quantidade_produtos_carrinho }}
+			</div>
+		</div>
+	</div>
+</header>

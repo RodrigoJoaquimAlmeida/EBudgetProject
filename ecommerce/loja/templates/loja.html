@@ -3,52 +3,178 @@
 
 {% block body %}
 
-<h3>loja</h3>
+<main class="principal">
+    <section class="loja">
+        <div class="menu">
+            <div class="menu__cabecalho">
+                <div class="menu__titulos">
+                    <div class="menu__icone">
+                        <img
+                            src="{% static 'images/filter.png' %}"
+                            alt="Logo Filtro"
+                        />
+                    </div>
+                    <p class="menu__titulo">Filtrar</p>
+                </div>
+                <div class="menu__fechar-filtro">
+                    <p>X</p>
+                </div>
+            </div>
+            <div class="menu__filtrao">
+                <div class="menu__filtrar">
+                    <p class="menu__subtitulo">Filtrar Produtos</p>
+                    <div class="menu__caixa-descricao">
+                        <form class="menu__descricao" action="{% url 'loja' %}" method="get">
+                            {% csrf_token %}
+                            <p class="menu__subtitulo-caixa"
+                                >Procure pela descrição do
+                                Produto</p
+                            >
+                            <input
+                                class="menu__input-desc"
+                                type="search" name="descricao" placeholder="Pesquisar produto..." value="{{ request.GET.descricao }}"
+                            />
+                            <button class="menu__botao" type="submit">
+                                Aplicar Filtro Descrição
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="menu__filtrar-ceg">
+                    <div class="menu__caixa-descricao">
+                        <form class="menu__descricao" action="" method="post">
+                            {% csrf_token %}
+                            <div class="menu__subtitulo-expansivel">
+                                <div
+                                    class="menu__subtitulo-expansivel-cabecalhos"
+                                >
+                                    <p class="menu__subtitulo">
+                                        Categoria
+                                    </p>
+                                </div>
+                                <div
+                                    class="menu__subtitulo-expansivel-cabecalho"
+                                >
+                                    {% for categoria in categorias %}
+                                        <div
+                                            class="menu__subtitulo-expansivel-cabecalho-agregado"
+                                        >
+                                            <div
+                                                class="menu__subtitulo-expansivel-cabecalho-texto"
+                                            >
+                                                <label
+                                                    class="menu__subtitulo-caixa"
+                                                    for="{{ categoria.slug }}">{{ categoria.nome }}
+                                                </label>
+                                            </div>
+                                            <div
+                                                class="menu__subtitulo-expansivel-cabecalho-check"
+                                            >
+                                                <input
+                                                    class="menu__input"
+                                                    type="radio" name="categoria" value="{{ categoria.slug }}">
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="menu__subtitulo-expansivel">
+                                <div
+                                    class="menu__subtitulo-expansivel-cabecalhos"
+                                >
+                                    <p class="menu__subtitulo">Grupo</p>
+                                </div>
+                                <div
+                                    class="menu__subtitulo-expansivel-cabecalho"
+                                >
+                                    {% for grupo in grupos %}
+                                        <div
+                                            class="menu__subtitulo-expansivel-cabecalho-agregado"
+                                        >
+                                            <div
+                                                class="menu__subtitulo-expansivel-cabecalho-texto"
+                                            >
+                                                <label
+                                                    class="menu__subtitulo-caixa"
+                                                    for="{{ grupo.slug }}">{{ grupo.nome }}
+                                                </label>
+                                            </div>
+                                            <div
+                                                class="menu__subtitulo-expansivel-cabecalho-check"
+                                            >
+                                                <input
+                                                    class="menu__input"
+                                                    type="radio" name="grupo" value="{{ grupo.slug }}">
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
 
-<div style="display: flex;">
-    <div>
-        <form action="{% url 'loja' %}" method="get">
-            {% csrf_token %}
-            <p>Procure pela descrição do Produto</p>
-            <input type="search" name="descricao" placeholder="Pesquisar produto..." value="{{ request.GET.descricao }}">
-            <button type="submit">Aplicar Filtro Descrição</button>
-        </form>
-        
-        
-        
-        <form action="" method="post">
-            {% csrf_token %}
-            <p>Categoria</p>
-            {% for categoria in categorias %}
-            <input type="radio" name="categoria" value="{{ categoria.slug }}">
-            <label for="{{ categoria.slug }}">{{ categoria.nome }}</label>
-            {% endfor %}
-        
-            <p>Grupo</p>
-            {% for grupo in grupos %}
-            <input type="radio" name="grupo" value="{{ grupo.slug }}">
-            <label for="{{ grupo.slug }}">{{ grupo.nome }}</label>
-        
-            {% endfor %}
-        
-            <button type="submit">Aplicar Filtros</button>
-        </form>
-    </div>
-    
-    
-    <div>
-        <h4>Ordenar por:</h4>
-        <ul>
-            <li><a href="#" class="item-ordenar" name="mais-orcados">Mais Orçados</a></li>
-        </ul>
-        {% for produto in produtos %}
-    
-        <a href="{% url 'ver_produto' produto.id %}"><img src="{{ produto.imagem.url }}" width="300" height="450"></a>
-        <p>Produto: {{ produto.nome }} </p>
-        <p>Código: {{ produto.SKU }}</p>
-    
-        {% endfor %}
-    </div>
-</div>
+                            <button class="menu__botao" type="submit">
+                                Aplicar Filtro
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="produtos">
+            <div class="produtos__cabecalho">
+                <div>
+                    <button class="produtos__cabecalho-filtrar">
+                        Filtrar
+                    </button>
+                </div>
+                <div class="produtos__cabecalho-ordenarpor">
+                    <div class="produtos__cabecalho-imgicone">
+                        <img
+                            class="produtos__cabecalho-icone"
+                            src="{% static 'images/sort-vertical-svgrepo-com.svg' %}"
+                            alt="Ícone Ordenar"
+                        />
+                    </div>
+                    <p class="produtos__subtitulo">Ordenar Por:</p>
+                    <select
+                        class="produtos__select"
+                        onchange="redirectToPage()"
+                    >
+                        <option value="">
+                            Selecione uma opção
+                        </option>
+                        <option class="item-ordenar" value="mais-orcados">
+                            Mais Orçados
+                        </option>
+                    </select>
+                </div>
+                <p class="produtos__cabecalho-itens">
+                    <!-- Mostrando <span>24 de 104 itens</span> -->
+                </p>
+            </div>
+            <div class="produtos__grade">
+                {% for produto in produtos %}
+                    <a href="{% url 'ver_produto' produto.id %}" class="produto">
+                        <div class="produto__imagem">
+                            {% if produto.imagem.all %}
+                                <img
+                                    src="{{ produto.imagem.all.0.imagem.url }}"
+                                    alt="Foto {{ produto.name }}"
+                                />
+                            {% else %}
+                            <p>Imagem não disponível.</p>
+                            {% endif %}
+                        </div>
+                        <div class="produto__textos">
+                            <p class="produto__titulo">
+                                Produto: {{ produto.nome }}
+                            </p>
+                            <p class="produto__codigo">Código: {{ produto.SKU }}</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
 
 {% endblock %}

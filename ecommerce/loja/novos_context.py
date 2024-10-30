@@ -1,4 +1,4 @@
-from .models import Orcamento, ItensOrcamento, Cliente, Categoria, Grupo
+from .models import Orcamento, ItensOrcamento, Cliente, Categoria, Grupo, Banner
 
 
 def carrinho(request):
@@ -21,5 +21,6 @@ def carrinho(request):
 def categorias_grupos(request):
     categorias_nav = Categoria.objects.all()
     grupos_nav = Grupo.objects.all()
-    return {'grupos_nav': grupos_nav, 'categorias_nav': categorias_nav}
+    banners_nav = Banner.objects.all()
+    return {'grupos_nav': grupos_nav, 'categorias_nav': categorias_nav, 'banners_nav': banners_nav}
 
