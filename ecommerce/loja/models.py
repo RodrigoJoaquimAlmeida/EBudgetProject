@@ -16,6 +16,9 @@ class Cliente(models.Model):
 
     def __str__(self):
         return str(self.email)
+    
+    def get_first_name(self):
+        return self.nome.split(" ")[0]
 
 class Categoria(models.Model):
     nome = models.CharField(max_length=200, null=True, blank=True)

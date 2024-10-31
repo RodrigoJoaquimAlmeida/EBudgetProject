@@ -125,7 +125,7 @@
 			<!-- cabecalho__informacoes-perfil--aberto -->
 			<div class="cabecalho__informacoes-perfil">
 				<p class="cabecalho__texto">
-					Ola, <span>{{ request.user.cliente.nome }}</span>!
+					Ola, <span>{{ request.user.cliente.get_first_name }}</span>!
 				</p>
 				<a
 					class="cabecalho__link cabecalho__link--perfil"
