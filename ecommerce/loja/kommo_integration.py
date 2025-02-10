@@ -14,7 +14,6 @@ def send_to_kommo(orcamento_id):
         "Content-Type": "application/json"
     }
     
-    # Monta os dados a serem enviados, incluindo informações de FK associadas
     data = {
         "codigo_orcamento": orcamento.codigo_orcamento,
         "data_finalizacao": orcamento.data_finalizacao.isoformat() if orcamento.data_finalizacao else None,
@@ -32,7 +31,7 @@ def send_to_kommo(orcamento_id):
         },
         "data_finalizacao": orcamento.data_finalizacao.isoformat() if orcamento.data_finalizacao else None,
         "finalizado": orcamento.finalizado,
-        "quantidade_total": orcamento.quantidade_total,  # Quantidade total de itens no orçamento
+        "quantidade_total": orcamento.quantidade_total, 
         "itens_orcamento": [
             {
                 "item_estoque_id": item.item_estoque.id if item.item_estoque else None,
@@ -46,7 +45,7 @@ def send_to_kommo(orcamento_id):
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()  # Levanta um erro para respostas de status 4xx/5xx
+        response.raise_for_status()  
         print("Dados enviados com sucesso ao Kommo CRM.")
     except requests.exceptions.HTTPError as http_err:
         print(f"Erro HTTP ao enviar dados ao Kommo CRM: {http_err}")

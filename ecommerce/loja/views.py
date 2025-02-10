@@ -424,7 +424,7 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
             if has_changes:
                 cliente_instance.save()
-                return Response("Produto atualizado/criado com sucesso", status=status.HTTP_200_OK)
+                return Response("Cliente atualizado/criado com sucesso", status=status.HTTP_200_OK)
             else:
                 return Response("Sem mudanças detectadas", status=status.HTTP_200_OK)
 
