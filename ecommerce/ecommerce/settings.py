@@ -56,11 +56,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-KOMMO_API_KEY = ''
-
 KOMMO_API_BASE_URL='https://metalfortecav.kommo.com'
 
-KOMMO_LONG_LIVED_TOKEN = ''
+KOMMO_LONG_LIVED_TOKEN = os.getenv('SECRET_KEY')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -143,7 +141,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
+    os.path.join(BASE_DIR, 'staticfiles')
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
