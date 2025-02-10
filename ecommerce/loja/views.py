@@ -1,15 +1,23 @@
 from django.shortcuts import render, redirect
 from .models import *
+from .serializer import *
 import uuid
-from .utils import filtrar_produtos, ordenar_produtos, exporta_dados_orcamento
-from .criarformcheckout import criar_formulario
+from .utils import filtrar_produtos, exporta_dados_orcamento, exporta_formpdf
 from .enviarformcheckoutemail import enviar_email
-from .apikommo import object_kommo
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.db.models.functions import Random
+from django.core.paginator import Paginator
+from django.conf import settings
 from datetime import datetime
+import pythoncom
+import requests
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, BasePermission
+from win32com.client import Dispatch
 
 
 # Create your views here.
@@ -32,14 +40,18 @@ def loja(request, filtro=None):
             produtos = produtos.filter(grupo__slug=dados.get("grupo"))
         if "categoria" in dados:
             produtos = produtos.filter(categoria__slug=dados.get("categoria"))
+    produtos = produtos.order_by('nome')
     ids_categorias = produtos.values_list("categoria", flat=True).distinct()
     categorias = Categoria.objects.filter(id__in=ids_categorias)
     ids_grupos = produtos.values_list("grupo", flat=True).distinct()
     grupos = Grupo.objects.filter(id__in=ids_grupos)
-    # itens = ItemEstoque.objects.filter(produto__in=produtos)
-    ordem = request.GET.get("ordem", "")
-    produtos = ordenar_produtos(produtos, ordem)
-    context = {"produtos": produtos, "categorias": categorias, "grupos": grupos}
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(produtos, 6)
+    produtos_page = paginator.get_page(page_number)
+    total_produtos = Produto.objects.count()
+    total_produtos_filtrados = produtos_page.end_index()   
+    filter_prod = produtos.count()
+    context = {"produtos": produtos_page, "categorias": categorias, "grupos": grupos, 'total_produtos': total_produtos, 'filter_prod': filter_prod, 'total_produtos_filtrados': total_produtos_filtrados, 'paginator': paginator}
     return render(request, 'loja.html', context)
 
 
@@ -57,36 +69,39 @@ def ver_produto(request, id_produto, id_cor=None): #RETORNAR AQUI PARA AJUSTAR Q
         cores = {item.cor for item in itens_estoque}
         if id_cor:
             itens_estoque = ItemEstoque.objects.filter(produto=produto, quantidade__gte=0, cor__id = id_cor) 
-    similares = Produto.objects.filter(categoria__id=produto.categoria.id, grupo__id=produto.grupo.id).exclude(id=produto.id)
+    similares = Produto.objects.filter(categoria__id=produto.categoria.id).exclude(id=produto.id).order_by(Random())
     context = {'produto': produto, 'itens_estoque': itens_estoque, 'tem_estoque': tem_estoque, 'cores': cores, 'cor_selecionada': cor_selecionada, 'similares': similares[:4]}
     return render(request, 'ver_produto.html', context)
 
 def adicionar_carrinho(request, id_produto):
-    if request.method == "POST" and id_produto:
-        dados = request.POST.dict()
-        cor = dados.get('cor_selecionada')
-        quantidade = int(dados.get('quantidade', 1))
-        if not cor:
-            return redirect('loja')
-        resposta = redirect('carrinho')
-        if request.user.is_authenticated:
-            cliente = request.user.cliente
-        else:
-            if request.COOKIES.get('id_sessao'):
-                id_sessao = request.COOKIES.get('id_sessao')
+    if request.user.is_authenticated:
+        if request.method == "POST" and id_produto:
+            dados = request.POST.dict()
+            cor = dados.get('cor_selecionada')
+            quantidade = int(dados.get('quantidade', 1))
+            if not cor:
+                return redirect('loja')
+            resposta = redirect('carrinho')
+            if request.user.is_authenticated:
+                cliente = request.user.cliente
             else:
-                id_sessao = str(uuid.uuid4())
-                resposta.set_cookie(key='id_sessao', value=id_sessao, max_age=60*60*24*7)
-            cliente, criado = Cliente.objects.get_or_create(id_sessao=id_sessao)
-                
-        orcamento, criado = Orcamento.objects.get_or_create(cliente=cliente, finalizado=False)
-        item_estoque = ItemEstoque.objects.get(produto__id=id_produto, cor__id=cor)
-        item_orcamento, criado = ItensOrcamento.objects.get_or_create(item_estoque=item_estoque, orcamento=orcamento)
-        item_orcamento.quantidade += quantidade
-        item_orcamento.save()
-        return resposta
+                if request.COOKIES.get('id_sessao'):
+                    id_sessao = request.COOKIES.get('id_sessao')
+                else:
+                    id_sessao = str(uuid.uuid4())
+                    resposta.set_cookie(key='id_sessao', value=id_sessao, max_age=60*60*24*7)
+                cliente, criado = Cliente.objects.get_or_create(id_sessao=id_sessao)
+                    
+            orcamento, criado = Orcamento.objects.get_or_create(cliente=cliente, finalizado=False)
+            item_estoque = ItemEstoque.objects.get(produto__id=id_produto, cor__id=cor)
+            item_orcamento, criado = ItensOrcamento.objects.get_or_create(item_estoque=item_estoque, orcamento=orcamento)
+            item_orcamento.quantidade += quantidade
+            item_orcamento.save()
+            return resposta
+        else:
+            return redirect('loja')
     else:
-        return redirect('loja')
+        return redirect('fazer_login')
     
 def remover_carrinho(request, id_produto):
     if request.method == "POST" and id_produto:
@@ -115,7 +130,7 @@ def remover_carrinho(request, id_produto):
     else:
         return redirect('loja')
 
-
+@login_required
 def carrinho(request):
     if request.user.is_authenticated:
         cliente = request.user.cliente
@@ -148,40 +163,71 @@ def checkout(request):
 
 @login_required
 def finalizar_orcamento(request, id_orcamento):
-    if request.method == "POST":
-        erro = None
-        dados = request.POST.dict()
-        total = dados.get('total')
-        orcamento = Orcamento.objects.get(id=id_orcamento)
+    pythoncom.CoInitialize()
+    try:
+        if request.method == "POST":
+            erro = None
+            dados = request.POST.dict()
+            total = dados.get('total')
+            orcamento = Orcamento.objects.get(id=id_orcamento)
 
-        if int(total) != int(orcamento.quantidade_total):
-            erro = 'quantidade'
+            if int(total) != int(orcamento.quantidade_total):
+                erro = 'quantidade'
 
-        if not "endereco" in dados:
-            erro = 'endereco'
+            if not "endereco" in dados:
+                erro = 'endereco'
+            else:
+                id_endereco = dados.get('endereco')
+                endereco = Endereco.objects.get(id=id_endereco)
+                orcamento.endereco = endereco
+            
+            codigo_orcamento = f'{orcamento.id}{datetime.now().timestamp()}'
+            orcamento.codigo_orcamento = codigo_orcamento
+            
+            
+            if erro:
+                enderecos = Endereco.objects.filter(cliente=orcamento.cliente)
+                context = {"erro": erro, 'orcamento': orcamento, 'enderecos': enderecos}
+                return render(request, 'checkout.html', context)
+            else:
+                
+                orcamento.finalizado = True
+                orcamento.data_finalizacao = datetime.now()
+                camend = exporta_dados_orcamento(endereco, orcamento)
+                orcamento_salvo = OrcamentosSalvos(orcamento=orcamento)
+                orcamento_salvo.formulario = camend
+                orcamento_salvo.save()
+                enviar_email(orcamento, camend)
+                orcamento.save()         
+                return redirect('meus_orcamentos')
         else:
-            id_endereco = dados.get('endereco')
-            endereco = Endereco.objects.get(id=id_endereco)
-            orcamento.endereco = endereco
-        
-        codigo_orcamento = f'{orcamento.id}{datetime.now().timestamp()}'
-        orcamento.codigo_orcamento = codigo_orcamento
-        orcamento.save()
-        if erro:
-            enderecos = Endereco.objects.filter(cliente=orcamento.cliente)
-            context = {"erro": erro, 'orcamento': orcamento, 'enderecos': enderecos}
-            return render(request, 'checkout.html', context)
+            return redirect('loja')
+    finally:
+        pythoncom.CoUninitialize()
+
+
+def kommo_callback(request):
+    code = request.GET.get("code")
+    if code:
+        # Troca o código pelo token de acesso
+        token_url = "https://metalfortecav.kommo.com/oauth2/access_token"
+        response = requests.post(token_url, data={
+            "client_id": settings.KOMMO_CLIENT_ID,
+            "client_secret": settings.KOMMO_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": "http://127.0.0.1:8000/auth/kommo/callback/"
+        })
+        if response.status_code == 200:
+            token_data = response.json()
+            access_token = token_data["access_token"]
+            # Salva o token no settings ou de forma segura para uso
+            settings.KOMMO_API_KEY = access_token
+            return redirect("meus_orcamentos")  # Redireciona após o sucesso
         else:
-            itens_orcamento = ItensOrcamento.objects.filter(orcamento=orcamento)
-            orcamento.finalizado = True
-            orcamento.data_finalizacao = datetime.now()
-            orcamento.save()         
-            # criar_formulario(itens_orcamento)
-            enviar_email(orcamento)
-            # object_kommo(criar_formulario(itens_orcamento))
-            return redirect('meus_orcamentos')
-    else:
-        return redirect('loja')
+            return redirect("error_page")  # Em caso de erro
+    return redirect("meus_orcamentos")
+
 
 @login_required   
 def adicionar_endereco(request):
@@ -256,8 +302,16 @@ def minha_conta(request):
 def meus_orcamentos(request):
     cliente = request.user.cliente
     orcamentos = Orcamento.objects.filter(finalizado=True, cliente=cliente).order_by("-data_finalizacao")
-    context = {"orcamentos": orcamentos}
+    forms = OrcamentosSalvos.objects.filter(orcamento__in = orcamentos)
+    context = {"orcamentos": orcamentos, 'forms': forms}
     return render(request, 'usuario/meus_orcamentos.html', context)
+
+@login_required
+def exportar_formulario(request, id_orcamento):
+    cliente = request.user.cliente
+    orcamentos = Orcamento.objects.filter(finalizado=True, cliente=cliente).order_by("-data_finalizacao")
+    forms = OrcamentosSalvos.objects.filter(orcamento__in = orcamentos, orcamento__id = id_orcamento)
+    return exporta_formpdf(forms)
 
 
 def fazer_login(request):
@@ -286,7 +340,8 @@ def criar_conta(request):
         return redirect('loja')
     if request.method == "POST":
         dados = request.POST.dict()
-        if "email" in dados and "nome" in dados and "razaosocial" in dados and "cnpjcpf" in dados and "senha" in dados and "confirmacao_senha" in dados and "telefone" in dados:
+        
+        if dados:
             email = dados.get("email")
             nome = dados.get("nome")
             razaosocial = dados.get("razaosocial")
@@ -322,13 +377,13 @@ def criar_conta(request):
                     cliente.razaosocial = razaosocial
                     cliente.cnpj = cnpjcpf
                     cliente.telefone = telefone
+                    cliente.is_created_by_site = True
                     cliente.save()
                     resposta = redirect('loja')
                     resposta.delete_cookie("id_sessao")
                     return resposta
             else:
-                erro = 'senhas_diferentes'
-            
+                erro = 'senhas_diferentes'       
         else:
             erro = "preenchimento"
     context = {'erro': erro}
@@ -338,3 +393,114 @@ def criar_conta(request):
 def fazer_logout(request):
     logout(request)
     return redirect('loja')
+
+
+class IsAPIUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='API Users').exists()
+
+
+class ClienteViewSet(viewsets.ModelViewSet):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+    permission_classes = [IsAuthenticated, IsAPIUser]
+    lookup_field = 'protheus'
+
+    def create(self, request, *args, **kwargs):
+        protheus = request.data.get('protheus')
+        email = request.data.get('email')
+        cliente_instance = Cliente.objects.filter(protheus=protheus).first()
+
+        if cliente_instance:
+            serializer = self.get_serializer(cliente_instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+
+            
+            has_changes = False
+            for field, value in serializer.validated_data.items():
+                if getattr(cliente_instance, field) != value:
+                    setattr(cliente_instance, field, value)
+                    has_changes = True
+
+            if has_changes:
+                cliente_instance.save()
+                return Response("Produto atualizado/criado com sucesso", status=status.HTTP_200_OK)
+            else:
+                return Response("Sem mudanças detectadas", status=status.HTTP_200_OK)
+
+        if Cliente.objects.filter(email=email).exists():
+            return Response(
+                {"error": "Este e-mail já está cadastrado."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
+
+
+class ProdutoViewSet(viewsets.ModelViewSet):
+    queryset = Produto.objects.all()
+    serializer_class = ProdutoSerializer
+    permission_classes = [IsAuthenticated, IsAPIUser]
+    lookup_field = 'SKU'
+
+    def create(self, request, *args, **kwargs):
+        SKU = request.data.get('SKU')
+        sku_instance = Produto.objects.filter(SKU=SKU).first()
+
+        if sku_instance:
+            serializer = self.get_serializer(sku_instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+
+            if 'imagem' in serializer.validated_data:
+                imagens = serializer.validated_data['imagem']
+                imagens_instancias = Foto.objects.filter(id__in=imagens)
+                sku_instance.imagem.set(imagens_instancias)
+
+            has_changes = False
+            for field, value in serializer.validated_data.items():
+                if getattr(sku_instance, field) != value:
+                    setattr(sku_instance, field, value)
+                    has_changes = True
+
+            if has_changes:
+                sku_instance.save()
+                return Response("Produto atualizado/criado com sucesso", status=status.HTTP_200_OK)
+            else:
+                return Response("Sem mudanças detectadas", status=status.HTTP_200_OK)
+
+        return super().create(request, *args, **kwargs)
+
+class ItemEstoqueViewSet(viewsets.ModelViewSet):
+    queryset = ItemEstoque.objects.all()
+    serializer_class = ItemEstoqueSerializer
+    permission_classes = [IsAuthenticated, IsAPIUser]
+
+    def create(self, request, *args, **kwargs):
+        produto_sku = request.data.get('produto')
+        cor_nome = request.data.get('cor')
+
+        item_estoque = ItemEstoque.objects.filter(
+            produto__SKU=produto_sku,
+            cor__nome=cor_nome
+        ).first()
+
+        if item_estoque:
+            serializer = self.get_serializer(item_estoque, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+
+            
+            has_changes = False
+            for field, value in serializer.validated_data.items():
+                if getattr(item_estoque, field) != value:
+                    setattr(item_estoque, field, value)
+                    has_changes = True
+
+            if has_changes:
+                item_estoque.save()
+                return Response("Item atualizado com sucesso", status=status.HTTP_200_OK)
+            else:
+                return Response("Sem mudanças detectadas", status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        item_estoque = serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -8,7 +8,7 @@
         <div class="conta__container">
             <div>
                 <p style="padding-bottom: 1rem;" class="conta__titulos"><a style="color: #f97114;" href="{% url 'minha_conta' %}">Minha Conta</a></p>
-                <p class="conta__titulos">Meus Orçamentos</p>
+                <p class="conta__titulos">Meus Orçamentos <span class="pedido__orcamento">(Aperte para expandir)</span></p>
             </div>
             {% for orcamento in orcamentos %}
             <div class="pedido">
@@ -58,14 +58,19 @@
                             <div class="tabela__produto-textos">
                                 <p>Quantidade: <span>{{ item.quantidade }}</span></p>
                             </div>
+                            
+                            
                         </div>
                     </div>
                     {% endfor %}
+                    <a style="color: #f97114;" href="{% url 'exportar_formulario' orcamento.id %}">Baixar Orçamento PDF</a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </section>
+
+    <script type="text/javascript" src="{% static 'js/orcamento.js' %}"></script>
 </main>
 
 {% endblock %}

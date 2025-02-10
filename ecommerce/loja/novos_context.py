@@ -3,7 +3,7 @@ from .models import Orcamento, ItensOrcamento, Cliente, Categoria, Grupo, Banner
 
 def carrinho(request):
     quantidade_produtos_carrinho = 0
-    if request.user.is_authenticated: #desativar se der erro ao criar usuario e bloquear acesso ao admin
+    if request.user.is_authenticated: 
         cliente = request.user.cliente
     else:
         if request.COOKIES.get('id_sessao'):

@@ -25,7 +25,7 @@
                         Confirme qual endereço gostaria de usar no
                         Orçamento
                     </p>
-                    <form action="{% url 'finalizar_orcamento' orcamento.id %}" method="post">
+                    <form action="{% url 'finalizar_orcamento' orcamento.id %}" method="post" onsubmit="showLoading()">
                         {% csrf_token %}
                         <div class="checkout__endereco-add" style="text-decoration: underline; text-decoration-color: #f97114; padding-bottom: 2rem;">
                             
@@ -80,6 +80,28 @@
             </div>
         </div>
     </section>
+    <aside class="espera" id="loading">
+        <div class="espera__container">
+            <div class="espera__elefante">
+                <img class="espera__elefante-img" src="{% static 'images/elef-anima.gif' %}" alt="">
+            </div>
+            <div class="espera__animacao">
+                <div class="espera__animacao-texto">
+                    <p>Carregando, aguarde...</p>
+                </div>
+                <div class="espera__animacao-gif">
+                    
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+    </script>
+
 </main>
 
 {% endblock %}

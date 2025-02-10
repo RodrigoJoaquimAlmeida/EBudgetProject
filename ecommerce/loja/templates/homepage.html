@@ -121,6 +121,45 @@
                 alt="Banner agronegócio"
         /></a>
     </section>
+    <aside class="popup">
+        <div class="popup__container">
+            <div class="popup__fechar"><p type="button">X</p></div>
+            <div class="popup__titulo">
+                <div class="popup__titulo-texto">
+                    <p>Bem vindo ao NOVO site TIM<span>AÇO</span></p>
+                </div>
+                <div class="popup__titulo-corpo">
+                    <img class="popup__titulo-img" src="{% static 'images/Logo-Metalforte-Secundaria-RGB.svg' %}" alt=""/>
+                    <span>*Web Services - Orçamentos*</span>
+                </div>
+            </div>
+            <div class="popup__corpo">
+                <div class="popup__corpo-1">
+                    <p>Toda família de produtos da <a href="{% url 'loja' %}"><span>Metalforte Metalúrgica</span></a> para você.</p>
+                </div>
+                <div class="popup__corpo-2">
+                    <p><span>Cliente Metalforte?</span> Solicite uma nova senha em <a href="{% url 'password_reset' %}">Esqueci minha Senha</a> usando seu <span>e-mail cadastrado.</span></p>
+                </div>
+                <div class="popup__corpo-3">
+                    <p>Navegue pelo site, conheça nossos produtos e <a href="{% url 'criar_conta' %}">Crie uma conta</a>!</p>
+                </div>
+            </div>
+
+            <div class="popup__info">
+                <div class="popup__info-meio">
+                    <img class="popup__info-img" src="{% static 'images/Logo-Metalforte-Secundaria-RGB.svg' %}" alt=""/>
+                    <p><span>Web Services</span></p>
+                </div>
+                <div class="popup__info-fim">
+                    <p>O melhor do <span>Aço</span> para você!</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <script type="text/javascript" src="{% static 'js/popup.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/carrossel.js' %}"></script>
+    
 </main>
 
 {% endblock %}

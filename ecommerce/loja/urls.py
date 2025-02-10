@@ -1,6 +1,16 @@
 from django.urls import path, include
 from .views import *
-from django.contrib.auth import views
+from django.contrib.auth import views as auth_views
+from rest_framework.routers import DefaultRouter
+from .views import ClienteViewSet, ProdutoViewSet, ItemEstoqueViewSet
+from . import views
+
+
+
+router = DefaultRouter()
+router.register(r'clientes', ClienteViewSet)
+router.register(r'produtos', ProdutoViewSet)
+router.register(r'itens_estoque', ItemEstoqueViewSet)
 
 urlpatterns = [
     path('', homepage, name='homepage'),
@@ -16,14 +26,17 @@ urlpatterns = [
     path('finalizarorcamento/<int:id_orcamento>/', finalizar_orcamento, name='finalizar_orcamento'),
     path('minhaconta/', minha_conta, name='minha_conta'),
     path('meusorcamentos/', meus_orcamentos, name='meus_orcamentos'),
+    path('exportarformulario/<int:id_orcamento>/', exportar_formulario, name='exportar_formulario'),
     path('fazerlogin/', fazer_login, name='fazer_login'),
     path('criarconta/', criar_conta, name='criar_conta'),
     path('fazerlogout/', fazer_logout, name='fazer_logout'),
-    path("password_change/", views.PasswordChangeView.as_view(), name="password_change"),
-    path("password_change/done/", views.PasswordChangeDoneView.as_view(), name="password_change_done"),
-    path("password_reset/", views.PasswordResetView.as_view(), name="password_reset"),
-    path("password_reset/done/", views.PasswordResetDoneView.as_view(), name="password_reset_done"),
-    path("reset/<uidb64>/<token>/", views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    path("reset/done/", views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    path("password_change/", auth_views.PasswordChangeView.as_view(), name="password_change"),
+    path("password_change/done/", auth_views.PasswordChangeDoneView.as_view(), name="password_change_done"),
+    path("password_reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
+    path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    path('', include(router.urls)),
+    path("auth/kommo/callback/", views.kommo_callback, name="kommo_callback"),
 
 ]

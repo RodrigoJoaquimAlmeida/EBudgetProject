@@ -126,29 +126,11 @@
                         Filtrar
                     </button>
                 </div>
-                <div class="produtos__cabecalho-ordenarpor">
-                    <div class="produtos__cabecalho-imgicone">
-                        <img
-                            class="produtos__cabecalho-icone"
-                            src="{% static 'images/sort-vertical-svgrepo-com.svg' %}"
-                            alt="Ícone Ordenar"
-                        />
-                    </div>
-                    <p class="produtos__subtitulo">Ordenar Por:</p>
-                    <select
-                        class="produtos__select"
-                        onchange="redirectToPage()"
-                    >
-                        <option value="">
-                            Selecione uma opção
-                        </option>
-                        <option class="item-ordenar" value="mais-orcados">
-                            Mais Orçados
-                        </option>
-                    </select>
-                </div>
+                
                 <p class="produtos__cabecalho-itens">
-                    <!-- Mostrando <span>24 de 104 itens</span> -->
+                    
+                    Mostrando <span>{{ total_produtos_filtrados }} de {{ filter_prod }} itens</span>
+                    
                 </p>
             </div>
             <div class="produtos__grade">
@@ -173,8 +155,32 @@
                     </a>
                 {% endfor %}
             </div>
+            <div class="pagination" style="display: flex; align-items: center; justify-content: center;">
+                <span class="step-links" style="display:flex; gap: 1rem">
+                    <!-- Link para a primeira página e página anterior -->
+                    {% if produtos.has_previous %}
+                    <a class="produtos__subtitulo" style="color: #f97114;" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">Início</a>
+                    <a class="produtos__subtitulo" style="color: #b6500c;" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ produtos.previous_page_number }}">Anterior</a>
+                    {% endif %}
+            
+                    <!-- Exibição da página atual e total de páginas -->
+                    <span class="produtos__subtitulo">
+                        Página {{ produtos.number }} de {{ produtos.paginator.num_pages }}
+                    </span>
+            
+                    <!-- Link para a próxima página e última página -->
+                    {% if produtos.has_next %}
+                    <a class="produtos__subtitulo" style="color: #b6500c;" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ produtos.next_page_number }}">Próxima</a>
+                    <a class="produtos__subtitulo" style="color: #f97114;" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ produtos.paginator.num_pages }}">Fim</a>
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </section>
 </main>
+
+
+<script type="text/javascript" src="{% static 'js/loja.js' %}"></script>
+
 
 {% endblock %}

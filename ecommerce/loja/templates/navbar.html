@@ -123,6 +123,7 @@
 				</svg>
 			</a>
 			<!-- cabecalho__informacoes-perfil--aberto -->
+			{% if request.user.is_authenticated %}
 			<div class="cabecalho__informacoes-perfil">
 				<p class="cabecalho__texto">
 					Ola, <span>{{ request.user.cliente.get_first_name }}</span>!
@@ -144,6 +145,7 @@
 					>Sair</a
 				>
 			</div>
+			{% endif %}
 		</div>
 		<div class="cabecalho__icone-carrinho">
 			<a class="cabecalho__link-icone" href="{% url 'carrinho' %}">

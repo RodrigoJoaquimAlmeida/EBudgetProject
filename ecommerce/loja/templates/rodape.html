@@ -109,10 +109,10 @@
                             <a href="#">Parcerias Metalforte</a>
                         </li>
                         <li>
-                            <a href="#">Nossas Unidades</a>
+                            <a href="#">Projetos Sociais</a>
                         </li>
                         <li>
-                            <a href="#">Mapa de Categorias</a>
+                            <a href="{% url 'minha_conta' %}">Loja Virtual</a>
                         </li>
                     </ul>
                 </div>
@@ -123,6 +123,9 @@
                     <ul class="rodape__links">
                         <li>
                             <a href="#">Trabalhe Conosco</a>
+                        </li>
+                        <li>
+                            <a href="#">Nossos Contatos</a>
                         </li>
                         <li>
                             <a
@@ -146,15 +149,21 @@
                 <div class="rodape__informacao">
                     <p class="rodape__titulo-informacao">Minha Conta</p>
                     <ul class="rodape__links">
+                        {% if request.user.is_authenticated %}
                         <li>
-                            <a href="#">Editar Dados</a>
+                            <a href="{% url 'minha_conta' %}">Editar Dados</a>
                         </li>
                         <li>
-                            <a href="#">Meus Orçamentos</a>
+                            <a href="{% url 'meus_orcamentos' %}">Meus Orçamentos</a>
                         </li>
                         <li>
-                            <a href="#">Meu Carrinho</a>
+                            <a href="{% url 'carrinho' %}">Meu Carrinho</a>
                         </li>
+                        {% else %}
+                        <li>
+                            <a href="{% url 'fazer_login' %}">Fazer Login</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div class="rodape__informacao">
@@ -198,7 +207,7 @@
                     <p class="rodape__ancoras-p">|</p>
                     <div class="rodape__ancoras--empresa">
                         <p class="rodape__titulo">
-                            Atendimento e Retirada CD Polo Goiás
+                            Retirada CD Polo Empresarial Goiás
                         </p>
                         <p class="rodape__links--horario">
                             Segunda a Sexta: 07h às 23h

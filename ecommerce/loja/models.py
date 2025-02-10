@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .nome_imagem import produto_imagem_path
-from .criarformcheckout import produto_formulario_path
+from django.db import IntegrityError
 
 # Create your models here.
 class Cliente(models.Model):
@@ -13,12 +13,30 @@ class Cliente(models.Model):
     telefone = models.CharField(max_length=200, null=True, blank=True)
     id_sessao = models.CharField(max_length=200, null=True, blank=True)
     usuario = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
+    is_created_by_site = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.email)
     
     def get_first_name(self):
         return self.nome.split(" ")[0]
+    
+    def save(self, *args, **kwargs):
+        # Somente cria o `User` se não for criado pelo site
+        if not self.is_created_by_site and not self.usuario:
+            # Verifique se já existe um usuário com o mesmo e-mail
+            try:
+                user, created = User.objects.get_or_create(
+                    username=self.email,
+                    defaults={'email': self.email}
+                )
+                if created:
+                    user.set_password(self.protheus)  # senha temporária
+                    user.save()
+                self.usuario = user
+            except IntegrityError:
+                pass
+        super(Cliente, self).save(*args, **kwargs)
 
 class Categoria(models.Model):
     nome = models.CharField(max_length=200, null=True, blank=True)
@@ -45,7 +63,7 @@ class Foto(models.Model):
     imagem = models.ImageField(upload_to=produto_imagem_path, null=True, blank=True)
 
     def __str__(self):
-        return str(self.imagem)
+        return f"ID: {self.id} - {str(self.imagem)}"
 
 class Produto(models.Model):
     imagem = models.ManyToManyField(Foto, blank=True, related_name='produtos')
@@ -134,8 +152,12 @@ class Banner(models.Model):
         return f"Banner: {str(self.link_destino)} - Ativo: {str(self.ativo)}"
     
 class OrcamentosSalvos(models.Model):
-    formulario = models.FileField(upload_to=produto_formulario_path)
+    formulario = models.FileField(null=True, blank=True)
     orcamento = models.ForeignKey(Orcamento, null=True, blank=True, on_delete=models.CASCADE)
 
+    def __str__(self):
+        formulario_path = self.formulario.path
+        formulario_nome = formulario_path.split("formularios\\")[-1]
+        return formulario_nome
 
 

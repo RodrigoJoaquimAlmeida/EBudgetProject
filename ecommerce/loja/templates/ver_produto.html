@@ -82,7 +82,7 @@
                         <div
                             class="s-produto__descricao-textos-encomenda-clique"
                         >
-                            <a href="#"
+                            <a href="{% url 'loja' 'metalfortesolucoes' %}"
                                 ><div
                                     class="s-produto__descricao-textos-encomenda-clique-1"
                                 >
@@ -147,5 +147,7 @@
     </section>
     {% endif %}
 </main>
+
+<script type="text/javascript" src="{% static 'js/produto.js' %}"></script>
 
 {% endblock %}
